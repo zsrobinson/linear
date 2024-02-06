@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
+import { BlockMath } from "react-katex";
 
 export default function Page() {
   const [input, setInput] = useState("");
@@ -23,14 +24,15 @@ export default function Page() {
         className="min-h-24 max-w-96 font-mono"
         placeholder="1 2 3&#10;4 5 6"
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => {
+          setInput(e.target.value);
+          setOutput("");
+        }}
       />
 
       <Button
         onClick={() => {
-          const matrix = input
-            .split("\n")
-            .map((row) => row.split(" ").map((n) => Number(n)));
+          const matrix = strToMatrix(input);
           reducedEcholonForm(matrix);
           setOutput(matrix.map((row) => row.join(" ")).join("\n"));
         }}
@@ -38,9 +40,17 @@ export default function Page() {
         Reduce
       </Button>
 
-      <pre>
-        <code>{output}</code>
-      </pre>
+      {output ? (
+        <BlockMath
+          math={
+            matrixToLatex(strToMatrix(input)) +
+            "\\implies" +
+            matrixToLatex(strToMatrix(output))
+          }
+        />
+      ) : (
+        input !== "" && <BlockMath math={matrixToLatex(strToMatrix(input))} />
+      )}
     </main>
   );
 }
@@ -127,4 +137,26 @@ function scaleRow(matrix: number[][], row: number, scalar: number) {
   for (let i = 0; i < matrix[row].length; i++) {
     matrix[row][i] *= scalar;
   }
+}
+
+function strToMatrix(str: string) {
+  return str.split("\n").map((row) =>
+    row
+      .split(" ")
+      .filter((n) => n.length > 0 && n !== "-")
+      .map((n) => Number(n)),
+  );
+}
+
+function matrixToLatex(matrix: number[][]) {
+  let latex = "\\begin{bmatrix} ";
+  for (let i = 0; i < matrix.length; i++) {
+    latex += matrix[i].map(formatNum).join(" & ") + "\\\\";
+  }
+  return latex + "\\end{bmatrix}";
+}
+
+function formatNum(n: number) {
+  if (isNaN(n)) return "\text{NaN}";
+  return String(Math.round(n * 1e3) / 1e3);
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ReactNode } from "react";
 import { Navbar } from "~/components/navbar";
+import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
