@@ -152,8 +152,10 @@ function reducedEcholonForm(matrix: number[][]) {
   for (let currRow = matrix.length - 1; currRow >= 0; currRow--) {
     const pivotPos = getFirstNonZeroCol(matrix, currRow);
 
-    // scale current row so that pivot is 1
-    if (matrix[currRow][pivotPos] !== 1) {
+    // ignore if pivot is 0, or scale current row so that pivot is 1
+    if (matrix[currRow][pivotPos] === 0) {
+      continue;
+    } else if (matrix[currRow][pivotPos] !== 1) {
       opr.scale(currRow, 1 / matrix[currRow][pivotPos]);
     }
 
