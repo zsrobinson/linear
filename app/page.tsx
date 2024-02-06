@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { BlockMath, InlineMath } from "react-katex";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
-import { BlockMath } from "react-katex";
 
 export default function Page() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [operations, setOperations] = useState<RowOperation[]>([]);
 
   return (
     <main className="m-8 flex flex-col items-start gap-4">
@@ -17,12 +18,12 @@ export default function Page() {
 
       <p>
         Enter your original matrix below with spaces between each element and
-        each row on separate lines.
+        rows on separate lines.
       </p>
 
       <Textarea
         className="min-h-24 max-w-96 font-mono"
-        placeholder="1 2 3&#10;4 5 6"
+        placeholder="1 2 3"
         value={input}
         onChange={(e) => {
           setInput(e.target.value);
@@ -33,21 +34,32 @@ export default function Page() {
       <Button
         onClick={() => {
           const matrix = strToMatrix(input);
-          reducedEcholonForm(matrix);
+          const operations = reducedEcholonForm(matrix);
           setOutput(matrix.map((row) => row.join(" ")).join("\n"));
+          setOperations(operations);
         }}
       >
         Reduce
       </Button>
 
       {output ? (
-        <BlockMath
-          math={
-            matrixToLatex(strToMatrix(input)) +
-            "\\implies" +
-            matrixToLatex(strToMatrix(output))
-          }
-        />
+        <>
+          <BlockMath
+            math={
+              matrixToLatex(strToMatrix(input)) +
+              "\\implies" +
+              matrixToLatex(strToMatrix(output))
+            }
+          />
+
+          <ol>
+            {operations.map((opr, i) => (
+              <li key={i}>
+                <InlineMath math={operationToLatex(opr)} />{" "}
+              </li>
+            ))}
+          </ol>
+        </>
       ) : (
         input !== "" && <BlockMath math={matrixToLatex(strToMatrix(input))} />
       )}
@@ -55,7 +67,14 @@ export default function Page() {
   );
 }
 
+/**
+ * Performs the row reduction algorithm on the provided matrix to convert it to
+ * reduced row echolon form. Row operations will mutate the original matrix,
+ * and a list of row operations performed will be returned.
+ */
 function reducedEcholonForm(matrix: number[][]) {
+  const opr = new MatrixOperator(matrix);
+
   // STEP 4: repeat 1-3 until all rows are processed
   for (let currRow = 0; currRow < matrix.length; currRow++) {
     // STEP 1: start with first non-zero column as pivot
@@ -65,7 +84,8 @@ function reducedEcholonForm(matrix: number[][]) {
     if (matrix[currRow][pivotPos] === 0) {
       for (let i = currRow + 1; i < matrix.length; i++) {
         if (matrix[i][pivotPos] === 0) continue;
-        interchangeRows(matrix, currRow, i);
+        opr.interchange(currRow, i);
+        break;
       }
     }
 
@@ -74,7 +94,7 @@ function reducedEcholonForm(matrix: number[][]) {
       if (matrix[i][pivotPos] === 0) continue;
 
       const scalar = -1 * (matrix[i][pivotPos] / matrix[currRow][pivotPos]);
-      replaceRows(matrix, i, currRow, scalar);
+      opr.replace(i, currRow, scalar);
     }
   }
 
@@ -84,16 +104,18 @@ function reducedEcholonForm(matrix: number[][]) {
 
     // scale current row so that pivot is 1
     if (matrix[currRow][pivotPos] !== 1) {
-      scaleRow(matrix, currRow, 1 / matrix[currRow][pivotPos]);
+      opr.scale(currRow, 1 / matrix[currRow][pivotPos]);
     }
 
     for (let i = currRow - 1; i >= 0; i--) {
       if (matrix[i][pivotPos] === 0) continue;
 
       const scalar = -1 * (matrix[i][pivotPos] / matrix[currRow][pivotPos]);
-      replaceRows(matrix, i, currRow, scalar);
+      opr.replace(i, currRow, scalar);
     }
   }
+
+  return opr.operations;
 }
 
 function getFirstNonZeroCol(matrix: number[][], startingRow = 0) {
@@ -104,39 +126,6 @@ function getFirstNonZeroCol(matrix: number[][], startingRow = 0) {
     return i;
   }
   return -1;
-}
-
-function getPivotPos(row: number[]) {
-  for (let i = 0; i < row.length; i++) {
-    if (row[i] !== 0) return i;
-  }
-  return -1;
-}
-
-/** Replaces `rowA` by the sum of itself and `rowB` * `scalar`. */
-function replaceRows(
-  matrix: number[][],
-  rowA: number,
-  rowB: number,
-  scalar: number,
-) {
-  for (let i = 0; i < matrix[rowA].length; i++) {
-    matrix[rowA][i] += scalar * matrix[rowB][i];
-  }
-}
-
-/** Switches the positions of `rowA` and `rowB`. */
-function interchangeRows(matrix: number[][], rowA: number, rowB: number) {
-  const tmp = matrix[rowA];
-  matrix[rowA] = matrix[rowB];
-  matrix[rowB] = tmp;
-}
-
-/** Multiples all entries in `row` by `scalar` */
-function scaleRow(matrix: number[][], row: number, scalar: number) {
-  for (let i = 0; i < matrix[row].length; i++) {
-    matrix[row][i] *= scalar;
-  }
 }
 
 function strToMatrix(str: string) {
@@ -156,7 +145,61 @@ function matrixToLatex(matrix: number[][]) {
   return latex + "\\end{bmatrix}";
 }
 
+function operationToLatex(opr: RowOperation): string {
+  switch (opr.type) {
+    case "replace":
+      return `R_${opr.rowA + 1} \\gets R_${opr.rowA + 1} + R_${opr.rowB + 1} * ${formatNum(opr.scalar)}`;
+    case "interchange":
+      return `R_${opr.rowA + 1} \\leftrightarrow R_${opr.rowB + 1}`;
+    case "scale":
+      return `R_${opr.row + 1} \\gets R_${opr.row + 1} * ${formatNum(opr.scalar)}`;
+  }
+}
+
 function formatNum(n: number) {
   if (isNaN(n)) return "\text{NaN}";
   return String(Math.round(n * 1e3) / 1e3);
+}
+
+type RowOperation =
+  | { type: "replace"; rowA: number; rowB: number; scalar: number }
+  | { type: "interchange"; rowA: number; rowB: number }
+  | { type: "scale"; row: number; scalar: number };
+
+/** Tools to perform row operations on a given matrix and record the process. */
+class MatrixOperator {
+  matrix: number[][];
+  operations: RowOperation[];
+
+  constructor(matrix: number[][]) {
+    this.matrix = matrix;
+    this.operations = [];
+  }
+
+  /** Replaces `rowA` by the sum of itself and `rowB` * `scalar`. */
+  replace(rowA: number, rowB: number, scalar: number) {
+    for (let i = 0; i < this.matrix[rowA].length; i++) {
+      this.matrix[rowA][i] += scalar * this.matrix[rowB][i];
+    }
+
+    this.operations.push({ type: "replace", rowA, rowB, scalar });
+  }
+
+  /** Switches the positions of `rowA` and `rowB`. */
+  interchange(rowA: number, rowB: number) {
+    const tmp = this.matrix[rowA];
+    this.matrix[rowA] = this.matrix[rowB];
+    this.matrix[rowB] = tmp;
+
+    this.operations.push({ type: "interchange", rowA, rowB });
+  }
+
+  /** Multiples all entries in `row` by `scalar` */
+  scale(row: number, scalar: number) {
+    for (let i = 0; i < this.matrix[row].length; i++) {
+      this.matrix[row][i] *= scalar;
+    }
+
+    this.operations.push({ type: "scale", row, scalar });
+  }
 }
