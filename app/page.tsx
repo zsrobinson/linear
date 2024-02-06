@@ -100,7 +100,7 @@ export default function Page() {
 
           <ol>
             {operations.map((opr, i) => (
-              <li key={i}>
+              <li key={i} className="pb-0.5">
                 <InlineMath math={operationToLatex(opr)} />
                 {detailed && (
                   <div className="p-2 pb-4 pl-4">
@@ -183,18 +183,22 @@ function getFirstNonZeroCol(matrix: Fraction[][], startingRow: number) {
 }
 
 function strToMatrix(str: string) {
-  return str.split("\n").map((row) =>
-    row
-      .split(" ")
-      .filter((n) => n.length > 0 && n !== "-")
-      .map((n) => new Fraction(n)),
-  );
+  return str.split("\n").map((strRow) => {
+    const row: Fraction[] = [];
+    strRow.split(" ").forEach((n) => {
+      try {
+        row.push(new Fraction(n));
+      } catch {}
+    });
+    return row;
+  });
 }
 
 function matrixToLatex(matrix: Fraction[][]) {
   let latex = "\\begin{bmatrix} ";
   for (let i = 0; i < matrix.length; i++) {
-    latex += matrix[i].map((f) => f.toLatex()).join(" & ") + "\\\\";
+    latex += matrix[i].map((f) => f.toLatex()).join(" & ");
+    if (i !== matrix.length - 1) latex += "\\\\[2px]";
   }
   return latex + "\\end{bmatrix}";
 }
