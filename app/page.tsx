@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { BlockMath, InlineMath } from "react-katex";
 import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 
 export default function Page() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [operations, setOperations] = useState<RowOperation[]>([]);
+  const [detailed, setDetailed] = useState(false);
 
   useEffect(() => setOutput(""), [input]);
 
@@ -75,6 +78,15 @@ export default function Page() {
         </Button>
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="detailed"
+          checked={detailed}
+          onCheckedChange={() => setDetailed((c) => !c)}
+        />
+        <Label htmlFor="detailed">Step-by-step mode</Label>
+      </div>
+
       {output ? (
         <>
           <BlockMath
@@ -88,7 +100,12 @@ export default function Page() {
           <ol>
             {operations.map((opr, i) => (
               <li key={i}>
-                <InlineMath math={operationToLatex(opr)} />{" "}
+                <InlineMath math={operationToLatex(opr)} />
+                {detailed && (
+                  <div className="p-2 pb-4 pl-4">
+                    <InlineMath math={matrixToLatex(opr.matrix)} />
+                  </div>
+                )}
               </li>
             ))}
           </ol>
@@ -194,10 +211,11 @@ function formatNum(n: number) {
   return String(Math.round(n * 1e3) / 1e3);
 }
 
-type RowOperation =
+type RowOperation = (
   | { type: "replace"; rowA: number; rowB: number; scalar: number }
   | { type: "interchange"; rowA: number; rowB: number }
-  | { type: "scale"; row: number; scalar: number };
+  | { type: "scale"; row: number; scalar: number }
+) & { matrix: number[][] };
 
 /** Tools to perform row operations on a given matrix and record the process. */
 class MatrixOperator {
@@ -215,7 +233,13 @@ class MatrixOperator {
       this.matrix[rowA][i] += scalar * this.matrix[rowB][i];
     }
 
-    this.operations.push({ type: "replace", rowA, rowB, scalar });
+    this.operations.push({
+      type: "replace",
+      rowA,
+      rowB,
+      scalar,
+      matrix: this.matrixClone(),
+    });
   }
 
   /** Switches the positions of `rowA` and `rowB`. */
@@ -224,7 +248,12 @@ class MatrixOperator {
     this.matrix[rowA] = this.matrix[rowB];
     this.matrix[rowB] = tmp;
 
-    this.operations.push({ type: "interchange", rowA, rowB });
+    this.operations.push({
+      type: "interchange",
+      rowA,
+      rowB,
+      matrix: this.matrixClone(),
+    });
   }
 
   /** Multiples all entries in `row` by `scalar` */
@@ -233,6 +262,15 @@ class MatrixOperator {
       this.matrix[row][i] *= scalar;
     }
 
-    this.operations.push({ type: "scale", row, scalar });
+    this.operations.push({
+      type: "scale",
+      row,
+      scalar,
+      matrix: this.matrixClone(),
+    });
+  }
+
+  matrixClone() {
+    return JSON.parse(JSON.stringify(this.matrix));
   }
 }
