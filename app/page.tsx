@@ -1,5 +1,6 @@
 "use client";
 
+import Fraction from "fraction.js";
 import { useEffect, useState } from "react";
 import { BlockMath, InlineMath } from "react-katex";
 import { Button } from "~/components/ui/button";
@@ -122,7 +123,7 @@ export default function Page() {
  * reduced row echolon form. Row operations will mutate the original matrix,
  * and a list of row operations performed will be returned.
  */
-function reducedEcholonForm(matrix: number[][]) {
+function reducedEcholonForm(matrix: Fraction[][]) {
   const opr = new MatrixOperator(matrix);
 
   // STEP 4: repeat 1-3 until all rows are processed
@@ -132,9 +133,9 @@ function reducedEcholonForm(matrix: number[][]) {
     if (pivotPos === -1) continue;
 
     // STEP 2: swap rows to bring non-zero term to pivot
-    if (isZero(matrix[currRow][pivotPos])) {
+    if (matrix[currRow][pivotPos].equals(0)) {
       for (let i = currRow + 1; i < matrix.length; i++) {
-        if (isZero(matrix[i][pivotPos])) continue;
+        if (matrix[i][pivotPos].equals(0)) continue;
         opr.interchange(currRow, i);
         break;
       }
@@ -142,9 +143,9 @@ function reducedEcholonForm(matrix: number[][]) {
 
     // STEP 3: perform row operations to clear below pivot
     for (let i = currRow + 1; i < matrix.length; i++) {
-      if (isZero(matrix[i][pivotPos])) continue;
+      if (matrix[i][pivotPos].equals(0)) continue;
 
-      const scalar = -1 * (matrix[i][pivotPos] / matrix[currRow][pivotPos]);
+      const scalar = matrix[i][pivotPos].div(matrix[currRow][pivotPos]).mul(-1);
       opr.replace(i, currRow, scalar);
     }
   }
@@ -154,17 +155,15 @@ function reducedEcholonForm(matrix: number[][]) {
     const pivotPos = getFirstNonZeroCol(matrix, currRow);
     if (pivotPos === -1) continue;
 
-    // ignore if pivot is 0, or scale current row so that pivot is 1
-    if (matrix[currRow][pivotPos] === 0) {
-      continue;
-    } else if (matrix[currRow][pivotPos] !== 1) {
-      opr.scale(currRow, 1 / matrix[currRow][pivotPos]);
+    // scale current row so that pivot is 1
+    if (!matrix[currRow][pivotPos].equals(1)) {
+      opr.scale(currRow, matrix[currRow][pivotPos].inverse());
     }
 
     for (let i = currRow - 1; i >= 0; i--) {
-      if (matrix[i][pivotPos] === 0) continue;
+      if (matrix[i][pivotPos].equals(0)) continue;
 
-      const scalar = -1 * (matrix[i][pivotPos] / matrix[currRow][pivotPos]);
+      const scalar = matrix[i][pivotPos].div(matrix[currRow][pivotPos]).mul(-1);
       opr.replace(i, currRow, scalar);
     }
   }
@@ -172,20 +171,15 @@ function reducedEcholonForm(matrix: number[][]) {
   return opr.operations;
 }
 
-function getFirstNonZeroCol(matrix: number[][], startingRow: number) {
+function getFirstNonZeroCol(matrix: Fraction[][], startingRow: number) {
   for (let i = 0; i < matrix[0].length; i++) {
     let allZeros = true;
     for (let j = startingRow; j < matrix.length; j++) {
-      if (!isZero(matrix[j][i])) allZeros = false;
+      if (matrix[j][i].n !== 0) allZeros = false;
     }
     if (!allZeros) return i;
   }
   return -1;
-}
-
-/** Floating point math is screwing everything up so this is a band-aid */
-function isZero(n: number) {
-  return Math.abs(n) < 1e-5;
 }
 
 function strToMatrix(str: string) {
@@ -193,14 +187,14 @@ function strToMatrix(str: string) {
     row
       .split(" ")
       .filter((n) => n.length > 0 && n !== "-")
-      .map((n) => Number(n)),
+      .map((n) => new Fraction(n)),
   );
 }
 
-function matrixToLatex(matrix: number[][]) {
+function matrixToLatex(matrix: Fraction[][]) {
   let latex = "\\begin{bmatrix} ";
   for (let i = 0; i < matrix.length; i++) {
-    latex += matrix[i].map(formatNum).join(" & ") + "\\\\";
+    latex += matrix[i].map((f) => f.toLatex()).join(" & ") + "\\\\";
   }
   return latex + "\\end{bmatrix}";
 }
@@ -208,39 +202,35 @@ function matrixToLatex(matrix: number[][]) {
 function operationToLatex(opr: RowOperation): string {
   switch (opr.type) {
     case "replace":
-      return `R_${opr.rowA + 1} \\gets R_${opr.rowA + 1} + R_${opr.rowB + 1} * ${formatNum(opr.scalar)}`;
+      return `R_${opr.rowA + 1} \\gets R_${opr.rowA + 1} + R_${opr.rowB + 1} * ${opr.scalar.toLatex()}`;
     case "interchange":
       return `R_${opr.rowA + 1} \\leftrightarrow R_${opr.rowB + 1}`;
     case "scale":
-      return `R_${opr.row + 1} \\gets R_${opr.row + 1} * ${formatNum(opr.scalar)}`;
+      return `R_${opr.row + 1} \\gets R_${opr.row + 1} * ${opr.scalar.toLatex()}`;
   }
 }
 
-function formatNum(n: number) {
-  if (isNaN(n)) return "\text{NaN}";
-  return String(Math.round(n * 1e3) / 1e3);
-}
-
 type RowOperation =
-  | { type: "replace"; rowA: number; rowB: number; scalar: number }
+  | { type: "replace"; rowA: number; rowB: number; scalar: Fraction }
   | { type: "interchange"; rowA: number; rowB: number }
-  | { type: "scale"; row: number; scalar: number };
-type RowOperationWithMatrix = RowOperation & { matrix: number[][] };
+  | { type: "scale"; row: number; scalar: Fraction };
+type RowOperationWithMatrix = RowOperation & { matrix: Fraction[][] };
 
 /** Tools to perform row operations on a given matrix and record the process. */
 class MatrixOperator {
-  matrix: number[][];
+  matrix: Fraction[][];
   operations: RowOperationWithMatrix[];
 
-  constructor(matrix: number[][]) {
+  constructor(matrix: Fraction[][]) {
     this.matrix = matrix;
     this.operations = [];
   }
 
   /** Replaces `rowA` by the sum of itself and `rowB` * `scalar`. */
-  replace(rowA: number, rowB: number, scalar: number) {
+  replace(rowA: number, rowB: number, scalar: Fraction) {
     for (let i = 0; i < this.matrix[rowA].length; i++) {
-      this.matrix[rowA][i] += scalar * this.matrix[rowB][i];
+      const scaledRowB = this.matrix[rowB][i].mul(scalar);
+      this.matrix[rowA][i] = this.matrix[rowA][i].add(scaledRowB);
     }
 
     this.pushOperation({ type: "replace", rowA, rowB, scalar });
@@ -256,9 +246,9 @@ class MatrixOperator {
   }
 
   /** Multiples all entries in `row` by `scalar` */
-  scale(row: number, scalar: number) {
+  scale(row: number, scalar: Fraction) {
     for (let i = 0; i < this.matrix[row].length; i++) {
-      this.matrix[row][i] *= scalar;
+      this.matrix[row][i] = this.matrix[row][i].mul(scalar);
     }
 
     this.pushOperation({ type: "scale", row, scalar });
@@ -267,7 +257,20 @@ class MatrixOperator {
   pushOperation(operation: RowOperation) {
     this.operations.push({
       ...operation,
-      matrix: JSON.parse(JSON.stringify(this.matrix)),
+      matrix: cloneMatrix(this.matrix),
     });
   }
+}
+
+function cloneMatrix(matrix: Fraction[][]) {
+  const newMatrix: Fraction[][] = [];
+
+  for (let i = 0; i < matrix.length; i++) {
+    newMatrix.push([]);
+    for (let j = 0; j < matrix[i].length; j++) {
+      newMatrix[i][j] = matrix[i][j].clone();
+    }
+  }
+
+  return newMatrix;
 }
