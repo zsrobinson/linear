@@ -10,7 +10,7 @@ import { Textarea } from "~/components/ui/textarea";
 export default function Page() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
-  const [operations, setOperations] = useState<RowOperation[]>([]);
+  const [operations, setOperations] = useState<RowOperationWithMatrix[]>([]);
   const [detailed, setDetailed] = useState(false);
 
   useEffect(() => setOutput(""), [input]);
@@ -211,16 +211,16 @@ function formatNum(n: number) {
   return String(Math.round(n * 1e3) / 1e3);
 }
 
-type RowOperation = (
+type RowOperation =
   | { type: "replace"; rowA: number; rowB: number; scalar: number }
   | { type: "interchange"; rowA: number; rowB: number }
-  | { type: "scale"; row: number; scalar: number }
-) & { matrix: number[][] };
+  | { type: "scale"; row: number; scalar: number };
+type RowOperationWithMatrix = RowOperation & { matrix: number[][] };
 
 /** Tools to perform row operations on a given matrix and record the process. */
 class MatrixOperator {
   matrix: number[][];
-  operations: RowOperation[];
+  operations: RowOperationWithMatrix[];
 
   constructor(matrix: number[][]) {
     this.matrix = matrix;
@@ -233,13 +233,7 @@ class MatrixOperator {
       this.matrix[rowA][i] += scalar * this.matrix[rowB][i];
     }
 
-    this.operations.push({
-      type: "replace",
-      rowA,
-      rowB,
-      scalar,
-      matrix: this.matrixClone(),
-    });
+    this.pushOperation({ type: "replace", rowA, rowB, scalar });
   }
 
   /** Switches the positions of `rowA` and `rowB`. */
@@ -248,12 +242,7 @@ class MatrixOperator {
     this.matrix[rowA] = this.matrix[rowB];
     this.matrix[rowB] = tmp;
 
-    this.operations.push({
-      type: "interchange",
-      rowA,
-      rowB,
-      matrix: this.matrixClone(),
-    });
+    this.pushOperation({ type: "interchange", rowA, rowB });
   }
 
   /** Multiples all entries in `row` by `scalar` */
@@ -262,15 +251,13 @@ class MatrixOperator {
       this.matrix[row][i] *= scalar;
     }
 
-    this.operations.push({
-      type: "scale",
-      row,
-      scalar,
-      matrix: this.matrixClone(),
-    });
+    this.pushOperation({ type: "scale", row, scalar });
   }
 
-  matrixClone() {
-    return JSON.parse(JSON.stringify(this.matrix));
+  pushOperation(operation: RowOperation) {
+    this.operations.push({
+      ...operation,
+      matrix: JSON.parse(JSON.stringify(this.matrix)),
+    });
   }
 }
