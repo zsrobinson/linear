@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BlockMath, InlineMath } from "react-katex";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
@@ -10,6 +10,8 @@ export default function Page() {
   const [output, setOutput] = useState("");
   const [operations, setOperations] = useState<RowOperation[]>([]);
 
+  useEffect(() => setOutput(""), [input]);
+
   return (
     <main className="m-8 flex flex-col items-start gap-4">
       <h2 className="text-lg font-semibold">
@@ -17,30 +19,61 @@ export default function Page() {
       </h2>
 
       <p>
-        Enter your original matrix below with spaces between each element and
-        rows on separate lines.
+        Enter your original matrix in the text area below with spaces between
+        each element and rows on separate lines. Or, check out some of the
+        examples.
       </p>
+
+      <div className="flex gap-4">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setInput("2 4 1 3\n6 2 3 9\n1 1 1 1")}
+        >
+          Example 1
+        </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setInput("0 -7 -4 2\n2 4 6 12\n3 1 -1 -2")}
+        >
+          Example 2
+        </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setInput("2 1 12 1\n1 2 9 -1")}
+        >
+          Example 3
+        </Button>
+      </div>
 
       <Textarea
         className="min-h-24 max-w-96 font-mono"
-        placeholder="1 2 3"
         value={input}
         onChange={(e) => {
           setInput(e.target.value);
-          setOutput("");
         }}
       />
 
-      <Button
-        onClick={() => {
-          const matrix = strToMatrix(input);
-          const operations = reducedEcholonForm(matrix);
-          setOutput(matrix.map((row) => row.join(" ")).join("\n"));
-          setOperations(operations);
-        }}
-      >
-        Reduce
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          onClick={() => {
+            const matrix = strToMatrix(input);
+            const operations = reducedEcholonForm(matrix);
+            setOutput(matrix.map((row) => row.join(" ")).join("\n"));
+            setOperations(operations);
+          }}
+        >
+          Reduce
+        </Button>
+
+        <Button onClick={() => setInput("")} variant="secondary">
+          Clear
+        </Button>
+      </div>
 
       {output ? (
         <>
