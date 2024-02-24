@@ -14,8 +14,15 @@ export class Vector {
     return this.comps.length;
   }
 
-  add(other: Vector): Vector | undefined {
-    if (this.size() !== other.size()) return undefined;
+  /** Returns `x`th vector component. Indexing starts at 1. */
+  getComp(x: number) {
+    if (x > this.size()) throw new Error("Invalid component index.");
+    return this.comps[x - 1];
+  }
+
+  add(other: Vector): Vector {
+    if (this.size() !== other.size())
+      throw new Error("Vectors are not of the same size.");
     return new Vector(this.comps.map((n, i) => n.add(other.comps[i])));
   }
 
@@ -23,8 +30,9 @@ export class Vector {
     return new Vector(this.comps.map((n) => n.mul(scalar)));
   }
 
-  dot(other: Vector): Fraction | undefined {
-    if (this.size() !== other.size()) return undefined;
+  dot(other: Vector): Fraction {
+    if (this.size() !== other.size())
+      throw new Error("Vectors are not of the same size.");
     const mul = this.comps.map((n, i) => n.mul(other.comps[i]));
     return mul.reduce((a, b) => a.add(b));
   }
@@ -44,6 +52,11 @@ export class Vector {
 
   clone(): Vector {
     return new Vector(this.comps);
+  }
+
+  /** Returns whether the vector is a zero vector. */
+  isZero(): boolean {
+    return this.comps.every((x) => x.equals(0));
   }
 
   /**
