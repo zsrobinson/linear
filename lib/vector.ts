@@ -1,12 +1,13 @@
 import Fraction from "fraction.js";
 import { Fractionish } from "./utils";
+import { Matrix } from "./matrix";
 
-/** A representation of a vector with any number of components. */
+/** Represents a vector with any number of components. */
 export class Vector {
-  comps: Fraction[] = [];
+  comps: Fraction[];
 
   constructor(comps: Fractionish[]) {
-    this.comps = comps.map((n) => new Fraction(n));
+    this.comps = comps.map((x) => new Fraction(x));
   }
 
   size(): number {
@@ -43,5 +44,17 @@ export class Vector {
 
   clone(): Vector {
     return new Vector(this.comps);
+  }
+
+  /**
+   * Returns a LaTeX representation of the vector.
+   * @see {@link Matrix.toLatex}
+   */
+  toLatex(type: "row" | "col" = "col"): string {
+    return (
+      type === "col"
+        ? new Matrix(this.comps, this.size(), 1)
+        : new Matrix(this.comps, 1, this.size())
+    ).toLatex();
   }
 }

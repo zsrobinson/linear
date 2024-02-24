@@ -18,3 +18,11 @@ export type Fractionish =
   | Fraction
   | [string | number, string | number]
   | { n: number; d: number };
+
+/**
+ * Returns an array from `start` (inclusive) to `start + length` (exclusive).
+ * `start` defaults to zero.
+ */
+export function range(length: number, start = 0) {
+  return Array.from({ length }, (_, i) => i + start);
+}
