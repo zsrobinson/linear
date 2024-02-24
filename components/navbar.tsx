@@ -6,7 +6,9 @@ export function Navbar() {
     <div className="flex items-center justify-between border-b border-border bg-muted px-8 py-4 dark:bg-muted/30">
       <Link href="/" className="flex items-center gap-2">
         <IconBrackets />
-        <h1 className="text-xl font-bold">Concepts in Linear Algebra</h1>
+        <h1 className="text-xl font-bold leading-none">
+          Concepts in Linear Algebra
+        </h1>
       </Link>
 
       <a

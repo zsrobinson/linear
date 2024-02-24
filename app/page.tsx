@@ -24,7 +24,7 @@ export default function Page() {
   return (
     <main className="m-8 flex flex-col items-start gap-4">
       <h2 className="text-lg font-semibold">
-        Reduced Row Echolon Form Proof of Concept
+        Reduced Row Echelon Form Proof of Concept
       </h2>
 
       <p>
@@ -55,7 +55,7 @@ export default function Page() {
             try {
               const inputMatrix = Matrix.fromStr(input);
               const { matrix: outputMatrix, steps } =
-                inputMatrix.toReducedRowEcholonForm();
+                inputMatrix.toReducedRowEchelonForm();
               setOutput(outputMatrix);
               setOperations(steps);
             } catch (e) {

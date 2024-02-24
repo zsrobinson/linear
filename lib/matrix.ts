@@ -12,7 +12,9 @@ export class Matrix {
 
   /**
    * Initializes a new matrix with a 1D array of components that is later
-   * interpreted as rows and columns based on `m` and `n`.
+   * interpreted as rows and columns based on `m` and `n`. Consider using
+   * {@link Matrix.fromRows} or {@link Matrix.fromCols} if your data is
+   * already in the form of a set of vectors.
    *
    * For example, a matrix created as `new Matrix([1, 2, 3, 4, 5, 6], 2, 3)`
    * would be interpreted as the following matrix:
@@ -197,11 +199,11 @@ export class Matrix {
   }
 
   /**
-   * Returns a new matrix that has been converted to reduced row echolon form.
+   * Returns a new matrix that has been converted to reduced row echelon form.
    * A list of the row operations performed is returned along with the matrix.
    * @see {@link https://textbooks.math.gatech.edu/ila/row-reduction.html}
    */
-  toReducedRowEcholonForm(): { matrix: Matrix; steps: RowOperation[] } {
+  toReducedRowEchelonForm(): { matrix: Matrix; steps: RowOperation[] } {
     let matrix = this.clone();
     const observer: RowOperation[] = [];
 
@@ -255,7 +257,7 @@ export class Matrix {
     return { matrix, steps: observer };
   }
 
-  /** Helper method for {@link Matrix.toReducedRowEcholonForm}. */
+  /** Helper method for {@link Matrix.toReducedRowEchelonForm}. */
   private getFirstNonZeroCol(start: number) {
     for (let j = start; j <= this.n; j++) {
       let allZeros = true;
