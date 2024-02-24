@@ -2,6 +2,7 @@ import Fraction from "fraction.js";
 import { RowOperation } from "./row-operation";
 import { Fractionish, range } from "./utils";
 import { Vector } from "./vector";
+import { z } from "zod";
 
 /** Represents a matrix with `m` rows and `n` columns. */
 export class Matrix {
@@ -348,4 +349,16 @@ export class Matrix {
     }
     return latex + "\\end{bmatrix}";
   }
+
+  toJSON(): SerializedMatrix {
+    return this.getRows().map((row) => row.toJSON());
+  }
+
+  static fromJSON(json: SerializedMatrix): Matrix {
+    const rows = json.map((row) => Vector.fromJSON(row));
+    return Matrix.fromRows(rows);
+  }
 }
+
+const matrixSerialization = z.string().array().array();
+type SerializedMatrix = z.infer<typeof matrixSerialization>;

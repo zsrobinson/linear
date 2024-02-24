@@ -1,6 +1,7 @@
 import Fraction from "fraction.js";
-import { Fractionish } from "./utils";
+import { z } from "zod";
 import { Matrix } from "./matrix";
+import { Fractionish } from "./utils";
 
 /** Represents a vector with any number of components. */
 export class Vector {
@@ -70,4 +71,15 @@ export class Vector {
         : new Matrix(this.comps, 1, this.size())
     ).toLatex();
   }
+
+  toJSON(): SerializedVector {
+    return this.comps.map((x) => x.toFraction());
+  }
+
+  static fromJSON(json: SerializedVector): Vector {
+    return new Vector(json);
+  }
 }
+
+const vectorSerialization = z.string().array();
+type SerializedVector = z.infer<typeof vectorSerialization>;
