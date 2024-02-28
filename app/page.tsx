@@ -24,11 +24,23 @@ export default function Page() {
       </p>
 
       <ul className="list-inside list-disc pl-4">
-        <li>
+        <li className="pb-2">
           <Link href="/row-reduction" className="underline">
             Reduced Row Echelon Form Calculator
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 1.2)</span>
+        </li>
+        <li className="pb-2">
+          <Link href="/matrix-multiplication" className="underline">
+            Matrix Multiplication Calculator
+          </Link>{" "}
+          <span className="text-muted-foreground">(Chapter 3.4)</span>
+        </li>
+        <li className="pb-2">
+          <Link href="/matrix-transpose" className="underline">
+            Matrix Transpose Calculator
+          </Link>{" "}
+          <span className="text-muted-foreground">(Chapter 4.1)</span>
         </li>
       </ul>
     </PageWrapper>

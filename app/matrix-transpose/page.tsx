@@ -1,24 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+import { BlockMath } from "react-katex";
 import { Examples } from "~/components/examples";
-import { LabeledSwitch } from "~/components/labeled-switch";
 import { PageTitle, PageWrapper } from "~/components/page-ui";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { getChapter } from "~/lib/chapters";
 import { Matrix } from "~/lib/matrix";
-import { RowOperation, operationToLatex } from "~/lib/row-operation";
 
-const title = "Reduced Row Echelon Form Calculator";
-const chapter = getChapter("1.2");
+const title = "Matrix Transpose Calculator";
+const chapter = getChapter("4.1");
 
 export default function Page() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<Matrix>();
-  const [operations, setOperations] = useState<RowOperation[]>([]);
-  const [detailed, setDetailed] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -38,9 +34,9 @@ export default function Page() {
 
       <Examples
         actions={[
-          () => setInput("2 4 1 3\n6 2 3 9\n1 1 1 1"),
-          () => setInput("0 -7 -4 2\n2 4 6 12\n3 1 -1 -2"),
-          () => setInput("2 1 12 1\n1 2 9 -1"),
+          () => setInput("1 2 3\n4 5 6"),
+          () => setInput("-1 2\n5 4\n2 -3"),
+          () => setInput("1 1 1\n1 2 3\n1 4 5"),
         ]}
       />
 
@@ -56,11 +52,9 @@ export default function Page() {
         <Button
           onClick={() => {
             try {
-              const inputMatrix = Matrix.fromStr(input);
-              const { matrix: resultMatrix, steps } =
-                inputMatrix.toReducedRowEchelonForm();
+              const inputMatrixA = Matrix.fromStr(input);
+              const resultMatrix = inputMatrixA.transpose();
               setResult(resultMatrix);
-              setOperations(steps);
             } catch (e) {
               let message = "Unknown error";
               if (e instanceof Error) message = e.message;
@@ -79,33 +73,12 @@ export default function Page() {
         <p className="text-sm leading-none text-red-500">{error}</p>
       </div>
 
-      <LabeledSwitch
-        checked={detailed}
-        setChecked={setDetailed}
-        label="Step-by-step mode"
-      />
-
       {result ? (
         <BlockMath
-          math={Matrix.fromStrToLatex(input) + "\\implies" + result.toLatex()}
+          math={Matrix.fromStrToLatex(input) + "^{-1}=" + result.toLatex()}
         />
       ) : input !== "" ? (
-        <BlockMath math={Matrix.fromStrToLatex(input) + "\\implies"} />
-      ) : null}
-
-      {result ? (
-        <ol>
-          {operations.map((opr, i) => (
-            <li key={i} className="pb-0.5">
-              <InlineMath math={operationToLatex(opr)} />
-              {detailed && (
-                <div className="p-2 pb-4 pl-4">
-                  <InlineMath math={opr.matrix.toLatex()} />
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
+        <BlockMath math={Matrix.fromStrToLatex(input) + "^{-1}="} />
       ) : null}
     </PageWrapper>
   );
