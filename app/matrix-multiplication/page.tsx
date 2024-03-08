@@ -81,7 +81,7 @@ export default function Page() {
             }
           }}
         >
-          Reduce
+          Submit
         </Button>
 
         <Button

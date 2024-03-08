@@ -1,5 +1,6 @@
 "use client";
 
+import Fraction from "fraction.js";
 import { useEffect, useState } from "react";
 import { BlockMath } from "react-katex";
 import { Examples } from "~/components/examples";
@@ -9,12 +10,12 @@ import { Textarea } from "~/components/ui/textarea";
 import { getChapter } from "~/lib/chapters";
 import { Matrix } from "~/lib/matrix";
 
-const title = "Matrix Transpose Calculator";
-const chapter = getChapter("4.1");
+const title = "Matrix Determinant Calculator";
+const chapter = getChapter("4.2");
 
 export default function Page() {
   const [input, setInput] = useState("");
-  const [result, setResult] = useState<Matrix>();
+  const [result, setResult] = useState<Fraction>();
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -27,16 +28,15 @@ export default function Page() {
       <PageTitle title={title} chapter={chapter} />
 
       <p>
-        Enter your original matrix in the text area below with spaces between
-        each element and rows on separate lines. Or, check out some of the
-        examples.
+        Enter your matrix in the text area below with spaces between each
+        element and rows on separate lines. Or, check out some of the examples.
       </p>
 
       <Examples
         actions={[
-          () => setInput("1 2 3\n4 5 6"),
-          () => setInput("-1 2\n5 4\n2 -3"),
-          () => setInput("1 1 1\n1 2 3\n1 4 5"),
+          () => setInput("1 3 5\n2 0 -1\n4 -3 1"),
+          () => setInput("2 5 -3 -2\n-2 -3 2 -5\n1 3 -2 0\n-1 6 4 0"),
+          () => setInput("12 1\n9 -1"),
         ]}
       />
 
@@ -52,9 +52,8 @@ export default function Page() {
         <Button
           onClick={() => {
             try {
-              const inputMatrixA = Matrix.fromStr(input);
-              const resultMatrix = inputMatrixA.transpose();
-              setResult(resultMatrix);
+              const matrix = Matrix.fromStr(input);
+              setResult(matrix.getDeterminant());
             } catch (e) {
               let message = "Unknown error";
               if (e instanceof Error) message = e.message;
@@ -75,10 +74,12 @@ export default function Page() {
 
       {result ? (
         <BlockMath
-          math={Matrix.fromStrToLatex(input) + "^T=" + result.toLatex()}
+          math={
+            Matrix.fromStrToLatex(input, "vmatrix") + "=" + result.toLatex()
+          }
         />
       ) : input !== "" ? (
-        <BlockMath math={Matrix.fromStrToLatex(input) + "^T="} />
+        <BlockMath math={Matrix.fromStrToLatex(input, "vmatrix") + "="} />
       ) : null}
     </PageWrapper>
   );

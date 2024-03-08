@@ -177,15 +177,15 @@ export class Matrix {
   }
 
   /** Returns a LaTeX representation of the matrix. */
-  toLatex(): string {
-    let latex = "\\begin{bmatrix} ";
+  toLatex(symbol = "bmatrix"): string {
+    let latex = `\\begin{${symbol}}`;
 
     this.getRows().forEach((row, i) => {
       latex += row.comps.map((x) => x.toLatex()).join(" & ");
       if (i + 1 !== this.m) latex += "\\\\[2px]";
     });
 
-    return latex + "\\end{bmatrix}";
+    return latex + `\\end{${symbol}}`;
   }
 
   toStr(): string {
@@ -255,6 +255,42 @@ export class Matrix {
     }
 
     return { matrix, steps: observer };
+  }
+
+  /**
+   * Computes the determinant for the current matrix, using cofactor expansion.
+   * @see {@link https://textbooks.math.gatech.edu/ila/determinants-cofactors.html}
+   */
+  getDeterminant(): Fraction {
+    if (this.n !== this.m) throw new Error("Matrix must be square.");
+    if (this.n === 1) return this.comps[0]; // base case
+
+    const i = 1;
+    const expansion = this.getRow(i);
+    const cofactors = expansion.comps.map((value, j) => {
+      return this.getCofactor(i, j + 1).mul(value);
+    });
+
+    // return the sum of the (cofactor * value) values
+    return cofactors.reduce((a, b) => a.add(b));
+  }
+
+  /** Gets the cofactor of the component at row `i` and column `j`. */
+  getCofactor(i: number, j: number): Fraction {
+    return this.getMinor(i, j)
+      .getDeterminant()
+      .mul((-1) ** (i + j));
+  }
+
+  /** Returns the matrix after deleting the `i`th row and `j`th column. */
+  getMinor(i: number, j: number): Matrix {
+    const withoutRow = Matrix.fromRows(
+      this.getRows().filter((_, index) => index + 1 !== i),
+    );
+
+    return Matrix.fromCols(
+      withoutRow.getCols().filter((_, index) => index + 1 !== j),
+    );
   }
 
   /** Helper method for {@link Matrix.toReducedRowEchelonForm}. */
@@ -331,7 +367,7 @@ export class Matrix {
    * Returns a LaTeX representation of a matrix that is in the process of being
    * inputted by the user.
    */
-  static fromStrToLatex(str: string): string {
+  static fromStrToLatex(str: string, symbol = "bmatrix"): string {
     const matrix: Fraction[][] = [];
 
     str.split("\n").forEach((strRow) => {
@@ -344,12 +380,20 @@ export class Matrix {
       if (comps.length > 0) matrix.push(comps);
     });
 
-    let latex = "\\begin{bmatrix} ";
+    let latex = `\\begin{${symbol}}`;
     for (let i = 0; i < matrix.length; i++) {
       latex += matrix[i].map((f) => f.toLatex()).join(" & ");
       if (i !== matrix.length - 1) latex += "\\\\[2px]";
     }
-    return latex + "\\end{bmatrix}";
+    return latex + `\\end{${symbol}}`;
+  }
+
+  static fromIdentity(n: number): Matrix {
+    const cols = range(n).map(
+      (i) => new Vector(range(n).map((j) => (i === j ? 1 : 0))),
+    );
+
+    return Matrix.fromCols(cols);
   }
 
   toJSON(): SerializedMatrix {

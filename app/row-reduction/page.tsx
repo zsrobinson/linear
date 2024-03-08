@@ -69,7 +69,7 @@ export default function Page() {
             }
           }}
         >
-          Reduce
+          Submit
         </Button>
 
         <Button onClick={() => setInput("")} variant="secondary">

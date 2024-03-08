@@ -2,11 +2,14 @@
   "cSpell.words": [
     "bmatrix",
     "clsx",
+    "Cofactor",
+    "cofactors",
     "Fractionish",
     "katex",
     "leftrightarrow",
     "rref",
     "tabler",
-    "tailwindcss"
+    "tailwindcss",
+    "vmatrix"
   ]
 }

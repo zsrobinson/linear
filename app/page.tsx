@@ -42,6 +42,12 @@ export default function Page() {
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 4.1)</span>
         </li>
+        <li className="pb-2">
+          <Link href="/matrix-determinant" className="underline">
+            Matrix Determinant Calculator
+          </Link>{" "}
+          <span className="text-muted-foreground">(Chapter 4.2)</span>
+        </li>
       </ul>
     </PageWrapper>
   );
