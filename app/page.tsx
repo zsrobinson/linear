@@ -37,6 +37,12 @@ export default function Page() {
           <span className="text-muted-foreground">(Chapter 3.4)</span>
         </li>
         <li className="pb-2">
+          <Link href="/matrix-inverse" className="underline">
+            Matrix Inverse Calculator
+          </Link>{" "}
+          <span className="text-muted-foreground">(Chapter 3.5)</span>
+        </li>
+        <li className="pb-2">
           <Link href="/matrix-transpose" className="underline">
             Matrix Transpose Calculator
           </Link>{" "}

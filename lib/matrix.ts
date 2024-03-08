@@ -293,6 +293,21 @@ export class Matrix {
     );
   }
 
+  getInverse(): Matrix {
+    if (this.getDeterminant().equals(0)) {
+      throw new Error("Matrix is not invertible.");
+    }
+
+    const augmented = Matrix.fromCols([
+      ...this.getCols(),
+      ...Matrix.fromIdentity(this.n).getCols(),
+    ]);
+
+    const { matrix: reduced } = augmented.toReducedRowEchelonForm();
+    const trimmed = reduced.getCols().filter((_, j) => j / this.n >= 1);
+    return Matrix.fromCols(trimmed);
+  }
+
   /** Helper method for {@link Matrix.toReducedRowEchelonForm}. */
   private getFirstNonZeroCol(start: number) {
     for (let j = start; j <= this.n; j++) {
