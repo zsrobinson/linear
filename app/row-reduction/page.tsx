@@ -48,7 +48,20 @@ export default function Page() {
         className="min-h-24 max-w-96 font-mono"
         value={input}
         onChange={(e) => {
-          setInput(e.target.value);
+          setInput(
+            e.target.value
+              .replaceAll(";\n", "\n")
+              .replaceAll(";", "\n")
+              .replaceAll(", ", " ")
+              .replaceAll(",", " ")
+              .replaceAll("[", "")
+              .replaceAll("]", "")
+              .replaceAll("(", "")
+              .replaceAll(")", "")
+              .split("\n")
+              .map((str) => str.trimStart())
+              .join("\n"),
+          );
         }}
       />
 
