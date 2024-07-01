@@ -8,7 +8,6 @@ import { PageTitle, PageWrapper } from "~/components/page-ui";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { getChapter } from "~/lib/chapters";
-import { Matrix } from "~/lib/matrix";
 import { Vector } from "~/lib/vector";
 
 const title = "Vector Dot Product Calculator";
@@ -30,8 +29,8 @@ export default function Page() {
       <PageTitle title={title} chapter={chapter} />
 
       <p>
-        Enter each vector in the text areas below. Or, check out some of the
-        examples.
+        Enter each vector in the text areas below using either spaces or line
+        breaks between elements.. Or, check out some of the examples.
       </p>
 
       <p>
@@ -108,8 +107,8 @@ export default function Page() {
       {result ? (
         <BlockMath
           math={
-            Matrix.fromStrToLatex(inputA) +
-            Matrix.fromStrToLatex(inputB) +
+            Vector.fromStrToLatex(inputA, "pmatrix", "col") +
+            Vector.fromStrToLatex(inputB, "pmatrix", "col") +
             "=" +
             result.toLatex()
           }
@@ -117,7 +116,9 @@ export default function Page() {
       ) : inputA !== "" || inputB !== "" ? (
         <BlockMath
           math={
-            Matrix.fromStrToLatex(inputA) + Matrix.fromStrToLatex(inputB) + "="
+            Vector.fromStrToLatex(inputA, "pmatrix", "col") +
+            Vector.fromStrToLatex(inputB, "pmatrix", "col") +
+            "="
           }
         />
       ) : null}

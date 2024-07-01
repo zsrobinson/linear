@@ -39,7 +39,8 @@ export class Vector {
   }
 
   length(): Fraction {
-    return this.dot(this)!.pow([1, 2]);
+    const squared = this.dot(this);
+    return new Fraction(Math.sqrt((squared.n / squared.d) * squared.s));
   }
 
   unit(): Vector {
@@ -90,6 +91,20 @@ export class Vector {
     } else {
       throw new Error("Unable to parse vector.");
     }
+  }
+
+  static fromStrToLatex(
+    str: string,
+    symbol = "bmatrix",
+    type?: "col" | "row", // controls if vector should be forced into a specific type (i.e. row vs. column)
+  ): string {
+    if (type === "col") {
+      str = str.replaceAll(" ", "\n");
+    } else if (type === "row") {
+      str = str.replaceAll(" ", "\n");
+    }
+
+    return Matrix.fromStrToLatex(str, symbol);
   }
 }
 

@@ -60,8 +60,15 @@ export default function Page() {
         </li>
 
         <li className="pb-2">
-          <Link href="/matrix-determinant" className="underline">
+          <Link href="/dot-product" className="underline">
             Vector Dot Product Calculator
+          </Link>{" "}
+          <span className="text-muted-foreground">(Chapter 6.1)</span>
+        </li>
+
+        <li className="pb-2">
+          <Link href="/vector-length" className="underline">
+            Vector Length Calculator
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 6.1)</span>
         </li>
