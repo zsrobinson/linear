@@ -79,6 +79,18 @@ export class Vector {
   static fromJSON(json: SerializedVector): Vector {
     return new Vector(json);
   }
+
+  static fromStr(str: string): Vector {
+    const matrix = Matrix.fromStr(str);
+
+    if (matrix.m == 1) {
+      return matrix.getRow(1);
+    } else if (matrix.n == 1) {
+      return matrix.getCol(1);
+    } else {
+      throw new Error("Unable to parse vector.");
+    }
+  }
 }
 
 const vectorSerialization = z.string().array();

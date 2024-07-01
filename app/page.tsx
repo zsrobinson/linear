@@ -30,29 +30,40 @@ export default function Page() {
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 1.2)</span>
         </li>
+
         <li className="pb-2">
           <Link href="/matrix-multiplication" className="underline">
             Matrix Multiplication Calculator
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 3.4)</span>
         </li>
+
         <li className="pb-2">
           <Link href="/matrix-inverse" className="underline">
             Matrix Inverse Calculator
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 3.5)</span>
         </li>
+
         <li className="pb-2">
           <Link href="/matrix-transpose" className="underline">
             Matrix Transpose Calculator
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 4.1)</span>
         </li>
+
         <li className="pb-2">
           <Link href="/matrix-determinant" className="underline">
             Matrix Determinant Calculator
           </Link>{" "}
           <span className="text-muted-foreground">(Chapter 4.2)</span>
+        </li>
+
+        <li className="pb-2">
+          <Link href="/matrix-determinant" className="underline">
+            Vector Dot Product Calculator
+          </Link>{" "}
+          <span className="text-muted-foreground">(Chapter 6.1)</span>
         </li>
       </ul>
     </PageWrapper>
